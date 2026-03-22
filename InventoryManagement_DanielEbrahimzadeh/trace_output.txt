@@ -1,0 +1,53 @@
+﻿=======================================================================
+        Inventory Management System ù JPA Validation Subroutine
+=======================================================================
+
+[BOOTSTRAP] Spawning EntityManagerFactory [InventoryPU]...
+mvn : SLF4J: Failed to load class 
+"org.slf4j.impl.StaticLoggerBinder".
+At line:1 char:168
++ ... ven-3.9.6\bin;$env:PATH"; mvn clean 
+compile exec:java -q 2>&1 | Out-F ...
++                               
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified:  
+   (SLF4J: Failed t...cLoggerBinder".:Strin  
+  g) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandE 
+   rror
+ 
+SLF4J: Defaulting to no-operation (NOP) 
+logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#St
+aticLoggerBinder for further details.
+
+[1] --- SYSTEM INGESTION (CREATE) ---
+[CREATE] Product [ID=1, Name=Ultra-wide Monitor  , Category=Hardware       , Price= 849.00, Stock=  42]
+[CREATE] Product [ID=2, Name=Developer Keyboard  , Category=Peripherals    , Price= 129.50, Stock= 105]
+[CREATE] Product [ID=3, Name=Ergo Standing Desk  , Category=Furniture      , Price= 550.00, Stock=  18]
+[CREATE] Product [ID=4, Name=Optical Gaming Mouse, Category=Peripherals    , Price=  65.00, Stock= 210]
+
+[2] --- INVENTORY AUDIT (READ ALL) ---
+    AUDIT -> Product [ID=1, Name=Ultra-wide Monitor  , Category=Hardware       , Price= 849.00, Stock=  42]
+    AUDIT -> Product [ID=2, Name=Developer Keyboard  , Category=Peripherals    , Price= 129.50, Stock= 105]
+    AUDIT -> Product [ID=3, Name=Ergo Standing Desk  , Category=Furniture      , Price= 550.00, Stock=  18]
+    AUDIT -> Product [ID=4, Name=Optical Gaming Mouse, Category=Peripherals    , Price=  65.00, Stock= 210]
+
+[3] --- INVENTORY FLIGHT (UPDATE) ---
+[UPDATE] ID 2 modified -> Product [ID=2, Name=Developer Keyboard  , Category=Peripherals    , Price= 115.00, Stock= 140]
+
+[4] --- AUDIT POST-FLIGHT ---
+    AUDIT -> Product [ID=1, Name=Ultra-wide Monitor  , Category=Hardware       , Price= 849.00, Stock=  42]
+    AUDIT -> Product [ID=2, Name=Developer Keyboard  , Category=Peripherals    , Price= 115.00, Stock= 140]
+    AUDIT -> Product [ID=3, Name=Ergo Standing Desk  , Category=Furniture      , Price= 550.00, Stock=  18]
+    AUDIT -> Product [ID=4, Name=Optical Gaming Mouse, Category=Peripherals    , Price=  65.00, Stock= 210]
+
+[5] --- SYSTEM SCRUB (DELETE) ---
+[DELETE] Discontinued Product ID 3 successfully scrubbed from database.
+
+[6] --- FINAL STATE AUDIT (READ ALL) ---
+    AUDIT -> Product [ID=1, Name=Ultra-wide Monitor  , Category=Hardware       , Price= 849.00, Stock=  42]
+    AUDIT -> Product [ID=2, Name=Developer Keyboard  , Category=Peripherals    , Price= 115.00, Stock= 140]
+    AUDIT -> Product [ID=4, Name=Optical Gaming Mouse, Category=Peripherals    , Price=  65.00, Stock= 210]
+
+[BOOTSTRAP] EntityManagerFactory gracefully collapsed. Execution resolved safely.
