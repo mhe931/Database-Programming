@@ -61,4 +61,198 @@ Note the rejection of the invalid negative price and the correct execution of th
 ![Console Execution Output](./screenshots/console_output.png)
 
 ---
+
+## 4. Source Code Exhibits
+
+### Exhibit A: `DatabaseConfig.java`
+```java
+package com.inventory;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class DatabaseConfig {
+
+    private static final String DB_URL = "jdbc:sqlite:inventory.db";
+
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(DB_URL);
+    }
+
+    public static void initializeDatabase() {
+        String createTableSQL = """
+                CREATE TABLE IF NOT EXISTS products (
+                    id    INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name  TEXT    NOT NULL,
+                    category TEXT NOT NULL,
+                    price REAL   NOT NULL
+                )
+                """;
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            stmt.execute(createTableSQL);
+            System.out.println("[DB] Database initialized — 'products' table is ready.");
+            System.out.println("[DB] Connected to: " + DB_URL);
+
+        } catch (SQLException e) {
+            System.err.printf("[DB] Failed to initialize database at %s%n", DB_URL);
+            System.err.printf("[DB] SQL State: %s | Error Code: %d | Message: %s%n",
+                    e.getSQLState(), e.getErrorCode(), e.getMessage());
+        }
+    }
+}
+```
+
+### Exhibit B: `ProductDAO.java`
+```java
+package com.inventory;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ProductDAO {
+
+    public void createProduct(String name, String category, double price) {
+        if (price < 0) {
+            System.err.printf("[CREATE] Rejected: price cannot be negative (%.2f) for '%s'.%n", price, name);
+            return;
+        }
+        String sql = "INSERT INTO products (name, category, price) VALUES (?, ?, ?)";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, name);
+            pstmt.setString(2, category);
+            pstmt.setDouble(3, price);
+            pstmt.executeUpdate();
+            System.out.printf("[CREATE] Product added: %s | %s | %.2f%n", name, category, price);
+        } catch (SQLException e) {
+            System.err.printf("[CREATE] SQL error inserting '%s': State=%s | Code=%d | %s%n",
+                    name, e.getSQLState(), e.getErrorCode(), e.getMessage());
+        }
+    }
+
+    public List<String> getAllProducts() {
+        String sql = "SELECT id, name, category, price FROM products";
+        List<String> products = new ArrayList<>();
+        try (Connection conn = DatabaseConfig.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                String record = String.format("  ID: %d | Name: %-15s | Category: %-12s | Price: %.2f",
+                        rs.getInt("id"), rs.getString("name"), rs.getString("category"), rs.getDouble("price"));
+                products.add(record);
+            }
+        } catch (SQLException e) {
+            System.err.printf("[READ] SQL error fetching products: State=%s | Code=%d | %s%n",
+                    e.getSQLState(), e.getErrorCode(), e.getMessage());
+        }
+        return products;
+    }
+
+    public void updateProductPrice(int id, double newPrice) {
+        if (newPrice < 0) {
+            System.err.printf("[UPDATE] Rejected: price cannot be negative (%.2f) for ID %d.%n", newPrice, id);
+            return;
+        }
+        String sql = "UPDATE products SET price = ? WHERE id = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setDouble(1, newPrice);
+            pstmt.setInt(2, id);
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.printf("[UPDATE] Product ID %d — new price: %.2f%n", id, newPrice);
+            } else {
+                System.out.printf("[UPDATE] No product found with ID %d.%n", id);
+            }
+        } catch (SQLException e) {
+            System.err.printf("[UPDATE] SQL error updating ID %d: State=%s | Code=%d | %s%n",
+                    id, e.getSQLState(), e.getErrorCode(), e.getMessage());
+        }
+    }
+
+    public void deleteProduct(int id) {
+        String sql = "DELETE FROM products WHERE id = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.printf("[DELETE] Product ID %d removed.%n", id);
+            } else {
+                System.out.printf("[DELETE] No product found with ID %d.%n", id);
+            }
+        } catch (SQLException e) {
+            System.err.printf("[DELETE] SQL error deleting ID %d: State=%s | Code=%d | %s%n",
+                    id, e.getSQLState(), e.getErrorCode(), e.getMessage());
+        }
+    }
+}
+```
+
+### Exhibit C: `Main.java`
+```java
+package com.inventory;
+
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("═══════════════════════════════════════════════════════");
+        System.out.println("       Product Inventory — JDBC CRUD Demo");
+        System.out.println("═══════════════════════════════════════════════════════\n");
+
+        DatabaseConfig.initializeDatabase();
+        ProductDAO dao = new ProductDAO();
+
+        System.out.println("\n── INSERT Operations ──────────────────────────────────");
+        dao.createProduct("Wireless Mouse",    "Electronics", 29.99);
+        dao.createProduct("USB-C Hub",         "Electronics", 49.95);
+        dao.createProduct("Standing Desk",     "Furniture",   349.00);
+        dao.createProduct("Mechanical Keyboard", "Electronics", 89.50);
+        dao.createProduct("Monitor Arm",       "Accessories", 44.75);
+        
+        // Validation demo — negative price should be rejected
+        dao.createProduct("Bad Product",       "Test",        -9.99);
+
+        System.out.println("\n── SELECT ALL Products ────────────────────────────────");
+        printProducts(dao.getAllProducts());
+
+        System.out.println("\n── UPDATE Operation ───────────────────────────────────");
+        dao.updateProductPrice(1, 24.99);
+
+        System.out.println("\n── Products after UPDATE ──────────────────────────────");
+        printProducts(dao.getAllProducts());
+
+        System.out.println("\n── DELETE Operation ───────────────────────────────────");
+        dao.deleteProduct(3);
+
+        System.out.println("\n── Products after DELETE ──────────────────────────────");
+        printProducts(dao.getAllProducts());
+
+        System.out.println("\n═══════════════════════════════════════════════════════");
+        System.out.println("       CRUD lifecycle complete.");
+        System.out.println("═══════════════════════════════════════════════════════");
+    }
+
+    private static void printProducts(List<String> products) {
+        if (products.isEmpty()) {
+            System.out.println("  (no products found)");
+        } else {
+            products.forEach(System.out::println);
+        }
+    }
+}
+```
+
+---
 *End of Report*
