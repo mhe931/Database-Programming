@@ -12,6 +12,9 @@ import java.util.List;
  * ProductDAO (Data Access Object) encapsulates all SQL logic for CRUD operations
  * on the 'products' table. Every method uses try-with-resources for safe
  * connection and resource management.
+ *
+ * Input validation is performed before database calls to reject invalid data
+ * early. Error logging includes SQL state and error codes for debugging.
  */
 public class ProductDAO {
 
@@ -21,12 +24,18 @@ public class ProductDAO {
 
     /**
      * Inserts a new product into the database.
+     * Validates that the price is not negative before executing the insert.
      *
      * @param name     the product name
      * @param category the product category
-     * @param price    the product price
+     * @param price    the product price (must be >= 0)
      */
     public void createProduct(String name, String category, double price) {
+        if (price < 0) {
+            System.err.printf("[CREATE] Rejected: price cannot be negative (%.2f) for '%s'.%n", price, name);
+            return;
+        }
+
         String sql = "INSERT INTO products (name, category, price) VALUES (?, ?, ?)";
 
         try (Connection conn = DatabaseConfig.getConnection();
@@ -40,7 +49,8 @@ public class ProductDAO {
             System.out.printf("[CREATE] Product added: %s | %s | %.2f%n", name, category, price);
 
         } catch (SQLException e) {
-            System.err.println("[CREATE] Error: " + e.getMessage());
+            System.err.printf("[CREATE] SQL error inserting '%s': State=%s | Code=%d | %s%n",
+                    name, e.getSQLState(), e.getErrorCode(), e.getMessage());
         }
     }
 
@@ -49,7 +59,7 @@ public class ProductDAO {
     // ──────────────────────────────────────────────
 
     /**
-     * Retrieves all products from the database and prints them.
+     * Retrieves all products from the database.
      *
      * @return a list of formatted strings representing each product
      */
@@ -73,7 +83,8 @@ public class ProductDAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("[READ] Error: " + e.getMessage());
+            System.err.printf("[READ] SQL error fetching products: State=%s | Code=%d | %s%n",
+                    e.getSQLState(), e.getErrorCode(), e.getMessage());
         }
 
         return products;
@@ -85,11 +96,17 @@ public class ProductDAO {
 
     /**
      * Updates the price of an existing product identified by its ID.
+     * Validates that the new price is not negative before executing the update.
      *
      * @param id       the product ID
-     * @param newPrice the new price to set
+     * @param newPrice the new price to set (must be >= 0)
      */
     public void updateProductPrice(int id, double newPrice) {
+        if (newPrice < 0) {
+            System.err.printf("[UPDATE] Rejected: price cannot be negative (%.2f) for ID %d.%n", newPrice, id);
+            return;
+        }
+
         String sql = "UPDATE products SET price = ? WHERE id = ?";
 
         try (Connection conn = DatabaseConfig.getConnection();
@@ -107,7 +124,8 @@ public class ProductDAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("[UPDATE] Error: " + e.getMessage());
+            System.err.printf("[UPDATE] SQL error updating ID %d: State=%s | Code=%d | %s%n",
+                    id, e.getSQLState(), e.getErrorCode(), e.getMessage());
         }
     }
 
@@ -137,7 +155,8 @@ public class ProductDAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("[DELETE] Error: " + e.getMessage());
+            System.err.printf("[DELETE] SQL error deleting ID %d: State=%s | Code=%d | %s%n",
+                    id, e.getSQLState(), e.getErrorCode(), e.getMessage());
         }
     }
 }

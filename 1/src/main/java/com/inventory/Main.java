@@ -32,6 +32,9 @@ public class Main {
         dao.createProduct("Mechanical Keyboard", "Electronics", 89.50);
         dao.createProduct("Monitor Arm",       "Accessories", 44.75);
 
+        // Validation demo — negative price should be rejected
+        dao.createProduct("Bad Product",       "Test",        -9.99);
+
         // ── Step 3: READ — Display all products ──────────────────
         System.out.println("\n── SELECT ALL Products ────────────────────────────────");
         printProducts(dao.getAllProducts());

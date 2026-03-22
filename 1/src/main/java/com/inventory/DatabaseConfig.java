@@ -42,9 +42,12 @@ public class DatabaseConfig {
 
             stmt.execute(createTableSQL);
             System.out.println("[DB] Database initialized — 'products' table is ready.");
+            System.out.println("[DB] Connected to: " + DB_URL);
 
         } catch (SQLException e) {
-            System.err.println("[DB] Error initializing database: " + e.getMessage());
+            System.err.printf("[DB] Failed to initialize database at %s%n", DB_URL);
+            System.err.printf("[DB] SQL State: %s | Error Code: %d | Message: %s%n",
+                    e.getSQLState(), e.getErrorCode(), e.getMessage());
         }
     }
 }
