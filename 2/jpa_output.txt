@@ -1,0 +1,111 @@
+﻿===================================================================
+           JPA / Hibernate CRUD Operations Demo
+===================================================================
+[BOOTSTRAP] Initializing EntityManagerFactory...
+mvn : Mar 22, 2026 6:26:05 PM 
+org.hibernate.jpa.internal.util.LogHelper 
+logPersistenceUnitInformation
+At line:1 char:168
++ ... ven-3.9.6\bin;$env:PATH"; mvn clean 
+compile exec:java -q 2>&1 | Out-F ...
++                               
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified:  
+   (Mar 22, 2026 6:...UnitInformation:Strin  
+  g) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandE 
+   rror
+ 
+INFO: HHH000204: Processing 
+PersistenceUnitInfo [name: inventory-pu]
+Mar 22, 2026 6:26:05 PM 
+org.hibernate.Version logVersion
+INFO: HHH000412: Hibernate ORM core version 
+6.4.4.Final
+Mar 22, 2026 6:26:05 PM org.hibernate.cache.i
+nternal.RegionFactoryInitiator 
+initiateService
+INFO: HHH000026: Second-level cache disabled
+Mar 22, 2026 6:26:05 PM org.hibernate.engine.
+jdbc.connections.internal.DriverManagerConnec
+tionProviderImpl configure
+WARN: HHH10001002: Using built-in connection 
+pool (not intended for production use)
+SLF4J: Failed to load class 
+"org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) 
+logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#St
+aticLoggerBinder for further details.
+Mar 22, 2026 6:26:05 PM org.hibernate.engine.
+jdbc.connections.internal.DriverManagerConnec
+tionProviderImpl buildCreator
+INFO: HHH10001005: Loaded JDBC driver class: 
+org.sqlite.JDBC
+Mar 22, 2026 6:26:05 PM org.hibernate.engine.
+jdbc.connections.internal.DriverManagerConnec
+tionProviderImpl buildCreator
+INFO: HHH10001012: Connecting with JDBC URL 
+[jdbc:sqlite:inventory_jpa.db]
+Mar 22, 2026 6:26:05 PM org.hibernate.engine.
+jdbc.connections.internal.DriverManagerConnec
+tionProviderImpl buildCreator
+INFO: HHH10001001: Connection properties: {}
+Mar 22, 2026 6:26:05 PM org.hibernate.engine.
+jdbc.connections.internal.DriverManagerConnec
+tionProviderImpl buildCreator
+INFO: HHH10001003: Autocommit mode: false
+Mar 22, 2026 6:26:05 PM org.hibernate.engine.
+jdbc.connections.internal.DriverManagerConnec
+tionProviderImpl$PooledConnections <init>
+INFO: HHH10001115: Connection pool size: 20 
+(min=1)
+Mar 22, 2026 6:26:06 PM org.hibernate.engine.
+transaction.jta.platform.internal.JtaPlatform
+Initiator initiateService
+INFO: HHH000489: No JTA platform available 
+(set 'hibernate.transaction.jta.platform' to 
+enable JTA platform integration)
+Mar 22, 2026 6:26:06 PM org.hibernate.resourc
+e.transaction.backend.jdbc.internal.DdlTransa
+ctionIsolatorNonJtaImpl getIsolatedConnection
+INFO: HHH10001501: Connection obtained from 
+JdbcConnectionAccess [org.hibernate.engine.jd
+bc.env.internal.JdbcEnvironmentInitiator$Conn
+ectionProviderJdbcConnectionAccess@218bbc33] 
+for (non-JTA) DDL execution was not in 
+auto-commit mode; the Connection 'local 
+transaction' will be committed and the 
+Connection will be set into auto-commit mode.
+
+[1] --- INSERT OPERATIONS ---
+[CREATE] Product [ID=1, Name=Ergonomic Chair, Category=Furniture   , Price=299.50]
+[CREATE] Product [ID=2, Name=Bluetooth Adapter, Category=Electronics , Price=15.00]
+[CREATE] Product [ID=3, Name=Mechanical Keyboard, Category=Electronics , Price=120.00]
+
+[2] --- READ (SELECT ALL) ---
+    FOUND -> Product [ID=1, Name=Ergonomic Chair, Category=Furniture   , Price=299.50]
+    FOUND -> Product [ID=2, Name=Bluetooth Adapter, Category=Electronics , Price=15.00]
+    FOUND -> Product [ID=3, Name=Mechanical Keyboard, Category=Electronics , Price=120.00]
+
+[3] --- UPDATE OPERATION ---
+[UPDATE] ID 2 updated -> Product [ID=2, Name=Bluetooth Adapter, Category=Accessories , Price=18.75]
+
+[4] --- SELECT AFTER UPDATE ---
+    FOUND -> Product [ID=1, Name=Ergonomic Chair, Category=Furniture   , Price=299.50]
+    FOUND -> Product [ID=2, Name=Bluetooth Adapter, Category=Accessories , Price=18.75]
+    FOUND -> Product [ID=3, Name=Mechanical Keyboard, Category=Electronics , Price=120.00]
+
+[5] --- DELETE OPERATION ---
+[DELETE] Product ID 3 removed.
+
+[6] --- FINAL STATE (SELECT ALL) ---
+    FOUND -> Product [ID=1, Name=Ergonomic Chair, Category=Furniture   , Price=299.50]
+    FOUND -> Product [ID=2, Name=Bluetooth Adapter, Category=Accessories , Price=18.75]
+Mar 22, 2026 6:26:07 PM org.hibernate.engine.
+jdbc.connections.internal.DriverManagerConnec
+tionProviderImpl$PoolState stop
+INFO: HHH10001008: Cleaning up connection 
+pool [jdbc:sqlite:inventory_jpa.db]
+
+[BOOTSTRAP] EntityManagerFactory gracefully closed.
