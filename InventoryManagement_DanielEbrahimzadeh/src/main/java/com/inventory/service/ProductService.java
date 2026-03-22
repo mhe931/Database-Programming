@@ -4,13 +4,9 @@ import com.inventory.entity.Product;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.TypedQuery;
-
-import java.util.List;
 
 /**
- * Service architect integrating the raw EntityManager operations.
- * Isolates data access and transaction demarcations from the application execution layer.
+ * Service class implementing CRUD operations for Product entities using EntityManager.
  */
 public class ProductService {
 
@@ -20,55 +16,45 @@ public class ProductService {
         this.emf = emf;
     }
 
-    /**
-     * Persists new inventory items.
-     */
-    public void createProduct(String name, String category, Double price, Integer stockQuantity) {
+    public void saveProduct(Product p) {
         EntityManager em = null;
         EntityTransaction tx = null;
         try {
             em = emf.createEntityManager();
             tx = em.getTransaction();
             tx.begin();
-            
-            Product product = new Product(name, category, price, stockQuantity);
-            em.persist(product);
-            
+            em.persist(p);
             tx.commit();
-            System.out.printf("[CREATE] %s%n", product.toString());
+            System.out.printf("[CREATE] Saved: %s%n", p.toString());
         } catch (RuntimeException e) {
-            if (tx != null && tx.isActive()) {
-                tx.rollback();
-            }
-            System.err.println("[ERROR] Failed to persist entity: " + e.getMessage());
+            if (tx != null && tx.isActive()) tx.rollback();
             throw e;
         } finally {
-            if (em != null) {
-                em.close();
-            }
+            if (em != null) em.close();
         }
     }
 
-    /**
-     * Retrieves all products executing JPQL over the object model.
-     */
-    public List<Product> getAllProducts() {
+    public Product findById(Long id) {
         EntityManager em = null;
         try {
             em = emf.createEntityManager();
-            TypedQuery<Product> query = em.createQuery("SELECT p FROM Product p", Product.class);
-            return query.getResultList();
+            return em.find(Product.class, id);
         } finally {
-            if (em != null) {
-                em.close();
-            }
+            if (em != null) em.close();
         }
     }
 
-    /**
-     * Modifies stock levels and pricing on an existing product ID utilizing dirty checking.
-     */
-    public void updateProduct(Long id, Double newPrice, Integer newStock) {
+    public java.util.List<Product> findAll() {
+        EntityManager em = null;
+        try {
+            em = emf.createEntityManager();
+            return em.createQuery("SELECT p FROM Product p", Product.class).getResultList();
+        } finally {
+            if (em != null) em.close();
+        }
+    }
+
+    public void updatePrice(Long id, double newPrice) {
         EntityManager em = null;
         EntityTransaction tx = null;
         try {
@@ -79,30 +65,21 @@ public class ProductService {
             Product product = em.find(Product.class, id);
             if (product != null) {
                 product.setPrice(newPrice);
-                product.setStockQuantity(newStock);
                 tx.commit();
-                System.out.printf("[UPDATE] ID %d modified -> %s%n", id, product.toString());
+                System.out.printf("[UPDATE] Price modified to %.2f for ID %d%n", newPrice, id);
             } else {
-                System.out.printf("[UPDATE] Product ID %d not found. Modification aborted.%n", id);
+                System.out.printf("[UPDATE] Product ID %d not found.%n", id);
                 tx.rollback();
             }
         } catch (RuntimeException e) {
-            if (tx != null && tx.isActive()) {
-                tx.rollback();
-            }
-            System.err.println("[ERROR] Failed to update entity: " + e.getMessage());
+            if (tx != null && tx.isActive()) tx.rollback();
             throw e;
         } finally {
-            if (em != null) {
-                em.close();
-            }
+            if (em != null) em.close();
         }
     }
 
-    /**
-     * Drops discontinued items from the physical data layer utilizing remove().
-     */
-    public void deleteProduct(Long id) {
+    public void removeProduct(Long id) {
         EntityManager em = null;
         EntityTransaction tx = null;
         try {
@@ -114,21 +91,16 @@ public class ProductService {
             if (product != null) {
                 em.remove(product);
                 tx.commit();
-                System.out.printf("[DELETE] Discontinued Product ID %d successfully scrubbed from database.%n", id);
+                System.out.printf("[DELETE] Removed Product ID %d%n", id);
             } else {
-                System.out.printf("[DELETE] Product ID %d not found. Deletion aborted.%n", id);
+                System.out.printf("[DELETE] Product ID %d not found.%n", id);
                 tx.rollback();
             }
         } catch (RuntimeException e) {
-            if (tx != null && tx.isActive()) {
-                tx.rollback();
-            }
-            System.err.println("[ERROR] Failed to delete entity: " + e.getMessage());
+            if (tx != null && tx.isActive()) tx.rollback();
             throw e;
         } finally {
-            if (em != null) {
-                em.close();
-            }
+            if (em != null) em.close();
         }
     }
 }

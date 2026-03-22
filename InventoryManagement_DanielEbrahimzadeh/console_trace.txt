@@ -1,0 +1,55 @@
+﻿=======================================================================
+          JPA / Hibernate Implementation Phase
+=======================================================================
+
+[INIT] Creating EntityManagerFactory...
+mvn : SLF4J: Failed to load class 
+"org.slf4j.impl.StaticLoggerBinder".
+At line:1 char:239
++ ... rAction SilentlyContinue; mvn clean 
+compile exec:java -q 2>&1 | Out-F ...
++                               
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified:  
+   (SLF4J: Failed t...cLoggerBinder".:Strin  
+  g) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandE 
+   rror
+ 
+SLF4J: Defaulting to no-operation (NOP) 
+logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#St
+aticLoggerBinder for further details.
+
+--- Step 1: Saving Products ---
+[CREATE] Saved: Product [ID=1, Name=Ultra-wide Monitor  , Category=Hardware       , Price= 849.00, Stock=  42]
+[CREATE] Saved: Product [ID=2, Name=Developer Keyboard  , Category=Peripherals    , Price= 129.50, Stock= 105]
+[CREATE] Saved: Product [ID=3, Name=Ergo Standing Desk  , Category=Furniture      , Price= 550.00, Stock=  18]
+
+>>> Current Database State:
+    Product [ID=1, Name=Ultra-wide Monitor  , Category=Hardware       , Price= 849.00, Stock=  42]
+    Product [ID=2, Name=Developer Keyboard  , Category=Peripherals    , Price= 129.50, Stock= 105]
+    Product [ID=3, Name=Ergo Standing Desk  , Category=Furniture      , Price= 550.00, Stock=  18]
+<<<
+
+--- Step 2: Finding Product by ID (ID=2) ---
+Found: Product [ID=2, Name=Developer Keyboard  , Category=Peripherals    , Price= 129.50, Stock= 105]
+
+--- Step 3: Updating Price (ID=2 to 115.00) ---
+[UPDATE] Price modified to 115.00 for ID 2
+
+>>> Current Database State:
+    Product [ID=1, Name=Ultra-wide Monitor  , Category=Hardware       , Price= 849.00, Stock=  42]
+    Product [ID=2, Name=Developer Keyboard  , Category=Peripherals    , Price= 115.00, Stock= 105]
+    Product [ID=3, Name=Ergo Standing Desk  , Category=Furniture      , Price= 550.00, Stock=  18]
+<<<
+
+--- Step 4: Removing Product (ID=3) ---
+[DELETE] Removed Product ID 3
+
+>>> Current Database State:
+    Product [ID=1, Name=Ultra-wide Monitor  , Category=Hardware       , Price= 849.00, Stock=  42]
+    Product [ID=2, Name=Developer Keyboard  , Category=Peripherals    , Price= 115.00, Stock= 105]
+<<<
+
+[TEARDOWN] EntityManagerFactory closed successfully.
