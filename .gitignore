@@ -1,1 +1,22 @@
-*.zip
+# Maven build output
+target/
+
+# Compiled Java files
+*.class
+
+# Runtime SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE metadata
+.idea/
+.vscode/
+.settings/
+
+# Operating system and editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
