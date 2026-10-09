@@ -1,6 +1,6 @@
 {
   "goal_id": "inventory-management",
-  "status": "inspecting",
+  "status": "completed",
   "iteration": 3,
   "builder_model": "implementation agent (runtime default)",
   "inspector_model": "code-review agent (runtime default)",
