@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS products (
         length(trim(sku, char(9) || char(10) || char(11) || char(12) || char(13) || ' ')) BETWEEN 1 AND 40
     ),
     description TEXT CHECK (description IS NULL OR length(description) <= 500),
-    price NUMERIC NOT NULL CHECK (price >= 0),
+    price NUMERIC NOT NULL CHECK (typeof(price) IN ('integer', 'real') AND price >= 0),
     category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE RESTRICT
 );
 
@@ -47,6 +47,6 @@ CREATE TABLE IF NOT EXISTS inventory_items (
     id INTEGER PRIMARY KEY,
     product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
     warehouse_id INTEGER NOT NULL REFERENCES warehouses(id) ON DELETE RESTRICT,
-    quantity INTEGER NOT NULL CHECK (quantity >= 0),
+    quantity INTEGER NOT NULL CHECK (typeof(quantity) = 'integer' AND quantity >= 0),
     UNIQUE (product_id, warehouse_id)
 );

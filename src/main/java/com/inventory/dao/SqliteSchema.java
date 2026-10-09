@@ -95,10 +95,10 @@ public final class SqliteSchema {
                 "warehouses", List.of(
                         requiredTextCheck("name", 120),
                         requiredTextCheck("location", 240)),
-                "products", List.of("price >= 0",
+                "products", List.of("typeof(price) in ('integer', 'real')", "price >= 0",
                         requiredTextCheck("name", 160),
                         requiredTextCheck("sku", 40)),
-                "inventory_items", List.of("quantity >= 0"));
+                "inventory_items", List.of("typeof(quantity) = 'integer'", "quantity >= 0"));
         for (var required : requiredChecks.entrySet()) {
             String ddl;
             try (var statement = connection.createStatement();

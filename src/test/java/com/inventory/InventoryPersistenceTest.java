@@ -177,6 +177,53 @@ class InventoryPersistenceTest {
     }
 
     @Test
+    void serviceReadsReturnTraversableRelationshipGraphsAfterEntityManagerCloses() {
+        Category category = categories.save(new Category("Coffee", "Beans and ground coffee"));
+        Supplier supplier = suppliers.save(new Supplier("Roaster", "roaster@example.test"));
+        Warehouse warehouse = warehouses.save(new Warehouse("Cold storage", "Reykjavik"));
+        Product product = new Product("Arabica", "ARB-001", null, new BigDecimal("8.25"), category);
+        product.addSupplier(supplier);
+        product = products.save(product);
+        InventoryItem item = inventory.save(new InventoryItem(product, warehouse, 6));
+        long productId = product.getId();
+        long supplierId = supplier.getId();
+        long itemId = item.getId();
+
+        Product productById = products.findById(productId).orElseThrow();
+        assertEquals("Coffee", productById.getCategory().getName());
+        assertEquals("Roaster", productById.getSuppliers().iterator().next().getName());
+        Product productInList = products.findAll().get(0);
+        assertEquals("Coffee", productInList.getCategory().getName());
+        assertEquals(1, productInList.getSuppliers().size());
+        Product productBySku = products.findBySku("ARB-001").orElseThrow();
+        assertEquals("Coffee", productBySku.getCategory().getName());
+        assertEquals(1, productBySku.getSuppliers().size());
+
+        Supplier supplierById = suppliers.findById(supplierId).orElseThrow();
+        assertEquals("Arabica", supplierById.getProducts().iterator().next().getName());
+        assertEquals("Coffee", supplierById.getProducts().iterator().next().getCategory().getName());
+        Supplier supplierInList = suppliers.findAll().get(0);
+        assertEquals("Coffee", supplierInList.getProducts().iterator().next().getCategory().getName());
+
+        InventoryItem itemById = inventory.findById(itemId).orElseThrow();
+        assertEquals("Arabica", itemById.getProduct().getName());
+        assertEquals("Coffee", itemById.getProduct().getCategory().getName());
+        assertEquals("Cold storage", itemById.getWarehouse().getName());
+        InventoryItem itemInList = inventory.findAll().get(0);
+        assertEquals("Coffee", itemInList.getProduct().getCategory().getName());
+        assertEquals("Reykjavik", itemInList.getWarehouse().getLocation());
+        InventoryItem itemByLocation = inventory.findFor(productId, warehouse.getId()).orElseThrow();
+        assertEquals("Coffee", itemByLocation.getProduct().getCategory().getName());
+        assertEquals("Cold storage", itemByLocation.getWarehouse().getName());
+
+        assertTrue(inventory.deleteById(itemId));
+        assertTrue(products.deleteById(productId));
+        assertTrue(suppliers.deleteById(supplierId));
+        assertTrue(categories.deleteById(category.getId()));
+        assertTrue(warehouses.deleteById(warehouse.getId()));
+    }
+
+    @Test
     void sqliteEnforcesForeignKeysAndDatabaseConstraints() throws Exception {
         Category category = categories.save(new Category("Hardware", null));
         Supplier supplier = suppliers.save(new Supplier("Vendor", null));
@@ -201,6 +248,15 @@ class InventoryPersistenceTest {
             assertThrows(SQLException.class, () -> statement.executeUpdate(
                     "INSERT INTO inventory_items(product_id, warehouse_id, quantity) VALUES ("
                             + product.getId() + ", " + warehouse.getId() + ", -1)"));
+            assertThrows(SQLException.class, () -> statement.executeUpdate(
+                    "INSERT INTO products(name, sku, price, category_id) VALUES "
+                            + "('Bad type', 'BAD-TYPE', 'not-a-price', " + category.getId() + ")"));
+            assertThrows(SQLException.class, () -> statement.executeUpdate(
+                    "INSERT INTO inventory_items(product_id, warehouse_id, quantity) VALUES ("
+                            + product.getId() + ", " + warehouse.getId() + ", 'not-an-integer')"));
+            assertThrows(SQLException.class, () -> statement.executeUpdate(
+                    "INSERT INTO inventory_items(product_id, warehouse_id, quantity) VALUES ("
+                            + product.getId() + ", " + warehouse.getId() + ", 1.5)"));
             assertThrows(SQLException.class, () -> statement.executeUpdate(
                     "INSERT INTO products(name, sku, price, category_id) VALUES ('   ', 'BLANK-NAME', 1, "
                             + category.getId() + ")"));
