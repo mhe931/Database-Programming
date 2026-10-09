@@ -34,6 +34,11 @@ public class Warehouse {
         this.location = location;
     }
 
+    public void updateDetails(String name, String location) {
+        this.name = name;
+        this.location = location;
+    }
+
     public Long getId() { return id; }
     public String getName() { return name; }
     public String getLocation() { return location; }

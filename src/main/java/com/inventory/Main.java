@@ -61,10 +61,23 @@ public final class Main {
         product.addSupplier(supplier);
         product = products.save(product);
 
+        Category persianCategory = categories.save(new Category("ادویه‌های ایرانی", "نمونه‌ای خیالی از بازار تهران"));
+        Supplier arabicSupplier = suppliers.save(new Supplier("شركة النور", "sales@example.test"));
+        Warehouse arabicWarehouse = warehouses.save(new Warehouse("مستودع دبي", "دبي"));
+        Product persianProduct = new Product("زعفران ایرانی", "SAF-001", "زعفران ممتاز",
+                new BigDecimal("14.50"), persianCategory);
+        persianProduct.addSupplier(arabicSupplier);
+        persianProduct = products.save(persianProduct);
+
         InventoryItem stock = inventory.save(new InventoryItem(product, warehouse, 24));
+        InventoryItem persianStock = inventory.save(new InventoryItem(persianProduct, arabicWarehouse, 12));
         System.out.println("Created: " + product + " supplied by " + supplier.getName());
+        System.out.println("Persian/Arabic sample: " + persianProduct + " supplied by " + arabicSupplier.getName()
+                + " at " + arabicWarehouse.getName());
         System.out.println("SKU lookup: " + products.findBySku("CAF-001").orElseThrow());
         System.out.println("Inventory: " + inventory.findFor(product.getId(), warehouse.getId()).orElseThrow());
+        System.out.println("Persian/Arabic inventory: "
+                + inventory.findFor(persianProduct.getId(), arabicWarehouse.getId()).orElseThrow());
 
         InventoryItem adjusted = inventory.adjustQuantity(stock.getId(), -3);
         System.out.println("After selling 3 units: quantity=" + adjusted.getQuantity());
@@ -80,10 +93,15 @@ public final class Main {
         demonstrateRollback(factory);
 
         inventory.deleteById(stock.getId());
+        inventory.deleteById(persianStock.getId());
         products.deleteById(product.getId());
+        products.deleteById(persianProduct.getId());
         suppliers.deleteById(supplier.getId());
+        suppliers.deleteById(arabicSupplier.getId());
         categories.deleteById(category.getId());
+        categories.deleteById(persianCategory.getId());
         warehouses.deleteById(warehouse.getId());
+        warehouses.deleteById(arabicWarehouse.getId());
         System.out.println("Demo records removed; application resources closed by the caller.");
     }
 

@@ -1,25 +1,37 @@
 CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE CHECK (length(trim(name)) BETWEEN 1 AND 100),
+    name TEXT NOT NULL UNIQUE CHECK (
+        length(trim(name, char(9) || char(10) || char(11) || char(12) || char(13) || ' ')) BETWEEN 1 AND 100
+    ),
     description TEXT CHECK (description IS NULL OR length(description) <= 500)
 );
 
 CREATE TABLE IF NOT EXISTS suppliers (
     id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE CHECK (length(trim(name)) BETWEEN 1 AND 120),
+    name TEXT NOT NULL UNIQUE CHECK (
+        length(trim(name, char(9) || char(10) || char(11) || char(12) || char(13) || ' ')) BETWEEN 1 AND 120
+    ),
     email TEXT CHECK (email IS NULL OR length(email) <= 254)
 );
 
 CREATE TABLE IF NOT EXISTS warehouses (
     id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE CHECK (length(trim(name)) BETWEEN 1 AND 120),
-    location TEXT NOT NULL CHECK (length(trim(location)) BETWEEN 1 AND 240)
+    name TEXT NOT NULL UNIQUE CHECK (
+        length(trim(name, char(9) || char(10) || char(11) || char(12) || char(13) || ' ')) BETWEEN 1 AND 120
+    ),
+    location TEXT NOT NULL CHECK (
+        length(trim(location, char(9) || char(10) || char(11) || char(12) || char(13) || ' ')) BETWEEN 1 AND 240
+    )
 );
 
 CREATE TABLE IF NOT EXISTS products (
     id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 160),
-    sku TEXT NOT NULL UNIQUE CHECK (length(trim(sku)) BETWEEN 1 AND 40),
+    name TEXT NOT NULL CHECK (
+        length(trim(name, char(9) || char(10) || char(11) || char(12) || char(13) || ' ')) BETWEEN 1 AND 160
+    ),
+    sku TEXT NOT NULL UNIQUE CHECK (
+        length(trim(sku, char(9) || char(10) || char(11) || char(12) || char(13) || ' ')) BETWEEN 1 AND 40
+    ),
     description TEXT CHECK (description IS NULL OR length(description) <= 500),
     price NUMERIC NOT NULL CHECK (price >= 0),
     category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE RESTRICT

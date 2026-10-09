@@ -54,6 +54,13 @@ public class InventoryItem {
         quantity = updated;
     }
 
+    public void updateQuantity(int quantity) {
+        if (quantity < 0) {
+            throw new IllegalArgumentException("Stock cannot be negative");
+        }
+        this.quantity = quantity;
+    }
+
     public Long getId() { return id; }
     public Product getProduct() { return product; }
     public Warehouse getWarehouse() { return warehouse; }

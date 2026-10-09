@@ -14,6 +14,7 @@ public class EntityService<T> {
     }
 
     public T save(T entity) { return repository.save(entity); }
+    public T update(T entity) { return repository.update(entity); }
     public Optional<T> findById(Object id) { return repository.findById(id); }
     public List<T> findAll() { return repository.findAll(); }
     public boolean deleteById(Object id) { return repository.deleteById(id); }

@@ -72,6 +72,14 @@ public class Product {
         this.category = category;
     }
 
+    public void updateDetails(String name, String sku, String description, BigDecimal price, Category category) {
+        this.name = name;
+        this.sku = sku;
+        this.description = description;
+        this.price = price;
+        this.category = category;
+    }
+
     public void addSupplier(Supplier supplier) {
         suppliers.add(supplier);
         supplier.getProducts().add(this);

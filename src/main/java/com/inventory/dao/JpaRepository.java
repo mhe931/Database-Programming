@@ -31,6 +31,13 @@ public class JpaRepository<T> {
         });
     }
 
+    public T update(T entity) {
+        if (entityManagerFactory.getPersistenceUnitUtil().getIdentifier(entity) == null) {
+            throw new IllegalArgumentException("Cannot update an entity that has not been saved");
+        }
+        return inTransaction(entityManagerFactory, entityManager -> entityManager.merge(entity));
+    }
+
     public Optional<T> findById(Object id) {
         try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
             return Optional.ofNullable(entityManager.find(entityType, id));

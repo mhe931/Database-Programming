@@ -105,6 +105,78 @@ class InventoryPersistenceTest {
     }
 
     @Test
+    void crudServicesCreateReadUpdateDeleteEachEntity() {
+        Category category = categories.save(new Category("Tools", "Hand tools"));
+        assertNotNull(category.getId());
+        assertEquals("Tools", categories.findById(category.getId()).orElseThrow().getName());
+        category.updateDetails("Updated tools", "Updated description");
+        categories.update(category);
+        assertEquals("Updated tools", categories.findById(category.getId()).orElseThrow().getName());
+
+        Supplier supplier = suppliers.save(new Supplier("First supplier", "first@example.test"));
+        assertNotNull(supplier.getId());
+        assertEquals("First supplier", suppliers.findById(supplier.getId()).orElseThrow().getName());
+        supplier.updateDetails("Updated supplier", "updated@example.test");
+        suppliers.update(supplier);
+        assertEquals("updated@example.test", suppliers.findById(supplier.getId()).orElseThrow().getEmail());
+
+        Warehouse warehouse = warehouses.save(new Warehouse("First warehouse", "North"));
+        assertNotNull(warehouse.getId());
+        assertEquals("North", warehouses.findById(warehouse.getId()).orElseThrow().getLocation());
+        warehouse.updateDetails("Updated warehouse", "South");
+        warehouses.update(warehouse);
+        assertEquals("South", warehouses.findById(warehouse.getId()).orElseThrow().getLocation());
+
+        Product product = products.save(new Product("First product", "FIRST-1", null,
+                new BigDecimal("2.00"), category));
+        assertNotNull(product.getId());
+        assertEquals("First product", products.findById(product.getId()).orElseThrow().getName());
+        product.updateDetails("Updated product", "UPDATED-1", "New details", new BigDecimal("3.50"), category);
+        products.update(product);
+        assertEquals("Updated product", products.findById(product.getId()).orElseThrow().getName());
+
+        InventoryItem item = inventory.save(new InventoryItem(product, warehouse, 4));
+        assertNotNull(item.getId());
+        assertEquals(4, inventory.findById(item.getId()).orElseThrow().getQuantity());
+        item.updateQuantity(9);
+        inventory.update(item);
+        assertEquals(9, inventory.findById(item.getId()).orElseThrow().getQuantity());
+
+        assertTrue(inventory.deleteById(item.getId()));
+        assertTrue(products.deleteById(product.getId()));
+        assertTrue(suppliers.deleteById(supplier.getId()));
+        assertTrue(categories.deleteById(category.getId()));
+        assertTrue(warehouses.deleteById(warehouse.getId()));
+        assertTrue(inventory.findById(item.getId()).isEmpty());
+        assertTrue(products.findById(product.getId()).isEmpty());
+        assertTrue(suppliers.findById(supplier.getId()).isEmpty());
+        assertTrue(categories.findById(category.getId()).isEmpty());
+        assertTrue(warehouses.findById(warehouse.getId()).isEmpty());
+        assertThrows(IllegalArgumentException.class, () -> categories.update(new Category("Unsaved", null)));
+    }
+
+    @Test
+    void multipleProductsPersistUnderAndReferenceTheSameCategory() {
+        Category category = categories.save(new Category("Beverages", null));
+        Product tea = products.save(new Product("Tea", "TEA-101", null, new BigDecimal("2.10"), category));
+        Product coffee = products.save(new Product("Coffee", "COF-101", null, new BigDecimal("4.20"), category));
+
+        assertEquals(category.getId(), products.findById(tea.getId()).orElseThrow().getCategory().getId());
+        assertEquals(category.getId(), products.findById(coffee.getId()).orElseThrow().getCategory().getId());
+        try (var entityManager = factory.createEntityManager()) {
+            assertEquals(2L, entityManager.createQuery(
+                            "select count(product) from Product product where product.category.id = :categoryId",
+                            Long.class)
+                    .setParameter("categoryId", category.getId())
+                    .getSingleResult());
+        }
+
+        assertTrue(products.deleteById(tea.getId()));
+        assertTrue(products.deleteById(coffee.getId()));
+        assertTrue(categories.deleteById(category.getId()));
+    }
+
+    @Test
     void sqliteEnforcesForeignKeysAndDatabaseConstraints() throws Exception {
         Category category = categories.save(new Category("Hardware", null));
         Supplier supplier = suppliers.save(new Supplier("Vendor", null));
@@ -129,6 +201,22 @@ class InventoryPersistenceTest {
             assertThrows(SQLException.class, () -> statement.executeUpdate(
                     "INSERT INTO inventory_items(product_id, warehouse_id, quantity) VALUES ("
                             + product.getId() + ", " + warehouse.getId() + ", -1)"));
+            assertThrows(SQLException.class, () -> statement.executeUpdate(
+                    "INSERT INTO products(name, sku, price, category_id) VALUES ('   ', 'BLANK-NAME', 1, "
+                            + category.getId() + ")"));
+            assertThrows(SQLException.class, () -> statement.executeUpdate(
+                    "INSERT INTO products(name, sku, price, category_id) VALUES ('Valid', char(9)||char(10), 1, "
+                            + category.getId() + ")"));
+            assertThrows(SQLException.class, () -> statement.executeUpdate(
+                    "INSERT INTO warehouses(name, location) VALUES ('   ', 'Valid location')"));
+            assertThrows(SQLException.class, () -> statement.executeUpdate(
+                    "INSERT INTO warehouses(name, location) VALUES (char(9)||char(10), 'Valid location')"));
+            assertThrows(SQLException.class, () -> statement.executeUpdate(
+                    "INSERT INTO categories(name) VALUES ('   ')"));
+            assertThrows(SQLException.class, () -> statement.executeUpdate(
+                    "INSERT INTO suppliers(name) VALUES (char(9)||char(10))"));
+            assertThrows(SQLException.class, () -> statement.executeUpdate(
+                    "INSERT INTO warehouses(name, location) VALUES ('Valid warehouse', char(9)||char(10))"));
             statement.executeUpdate("INSERT INTO product_suppliers(product_id, supplier_id) VALUES ("
                     + product.getId() + ", " + supplier.getId() + ")");
             assertThrows(SQLException.class, () -> statement.executeUpdate(

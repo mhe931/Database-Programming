@@ -90,10 +90,14 @@ public final class SqliteSchema {
         verifyUniqueIndex(connection, "inventory_items", List.of("product_id", "warehouse_id"));
 
         Map<String, List<String>> requiredChecks = Map.of(
-                "categories", List.of("length(trim(name)) between 1 and 100"),
-                "suppliers", List.of("length(trim(name)) between 1 and 120"),
-                "warehouses", List.of("length(trim(location)) between 1 and 240"),
-                "products", List.of("price >= 0", "length(trim(sku)) between 1 and 40"),
+                "categories", List.of(requiredTextCheck("name", 100)),
+                "suppliers", List.of(requiredTextCheck("name", 120)),
+                "warehouses", List.of(
+                        requiredTextCheck("name", 120),
+                        requiredTextCheck("location", 240)),
+                "products", List.of("price >= 0",
+                        requiredTextCheck("name", 160),
+                        requiredTextCheck("sku", 40)),
                 "inventory_items", List.of("quantity >= 0"));
         for (var required : requiredChecks.entrySet()) {
             String ddl;
@@ -112,6 +116,12 @@ public final class SqliteSchema {
                 }
             }
         }
+    }
+
+    private static String requiredTextCheck(String column, int maxLength) {
+        return "length(trim(" + column
+                + ", char(9) || char(10) || char(11) || char(12) || char(13) || ' ')) between 1 and "
+                + maxLength;
     }
 
     private static void verifyUniqueIndex(java.sql.Connection connection, String table, List<String> expectedColumns)
